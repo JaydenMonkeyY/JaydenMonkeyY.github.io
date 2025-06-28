@@ -31,7 +31,7 @@
       color: white;
       border: none;
     }
-    .textarea {
+    .textarea, .input {
       width: 100%;
       margin-top: 8px;
       padding: 8px;
@@ -40,9 +40,6 @@
     }
     .tabs button {
       margin-right: 8px;
-    }
-    .hidden {
-      display: none;
     }
   </style>
 </head>
@@ -60,7 +57,7 @@
     const startDate = new Date("2025-07-01");
     const daysInMonth = 30;
     const defaultTasks = ["Study (30 mins)", "Workout (15–30 mins)", "Reflection"];
-    const weeklyGoals = [
+    let weeklyGoals = [
       {
         title: "Complete 1 full SAT test",
         description: "Take a full timed SAT practice test using Bluebook or paper. Review all mistakes."
@@ -98,6 +95,10 @@
 
     function updateNotes(dayIndex, value) {
       tasks[dayIndex].notes = value;
+    }
+
+    function updateGoal(index, field, value) {
+      weeklyGoals[index][field] = value;
     }
 
     function renderTodayView() {
@@ -164,6 +165,34 @@
     function renderAdjustView() {
       const container = document.createElement("div");
 
+      const goalCard = document.createElement("div");
+      goalCard.className = "card";
+      goalCard.innerHTML = `<h3>🛠 Edit Weekly Goals</h3>`;
+
+      weeklyGoals.forEach((goal, i) => {
+        const titleInput = document.createElement("input");
+        titleInput.className = "input";
+        titleInput.value = goal.title;
+        titleInput.oninput = (e) => {
+          updateGoal(i, "title", e.target.value);
+        };
+
+        const descInput = document.createElement("textarea");
+        descInput.className = "textarea";
+        descInput.value = goal.description;
+        descInput.oninput = (e) => {
+          updateGoal(i, "description", e.target.value);
+        };
+
+        goalCard.appendChild(document.createTextNode(`Goal #${i + 1}:`));
+        goalCard.appendChild(titleInput);
+        goalCard.appendChild(descInput);
+        goalCard.appendChild(document.createElement("hr"));
+      });
+
+      container.appendChild(goalCard);
+
+      // Daily plan adjustment
       tasks.forEach((day, i) => {
         const card = document.createElement("div");
         card.className = "card";
