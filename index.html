@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Monthly Progress Tracker</title>
+  <title>Daily Adjustable Goal Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -57,7 +57,8 @@
     const startDate = new Date("2025-07-01");
     const daysInMonth = 30;
 
-    let defaultTasks = ["Study (30 mins)", "Workout (15–30 mins)", "Reflection"];
+    const defaultTaskTemplate = ["Study (30 mins)", "Workout (15–30 mins)", "Reflection"];
+
     let weeklyGoals = [
       { title: "Complete 1 full SAT test", description: "Take a full timed SAT practice test using Bluebook or paper. Review all mistakes." },
       { title: "Run 5km under 25 minutes", description: "Attempt one 5K test run this week. Focus on pacing and breathing." },
@@ -65,7 +66,8 @@
     ];
 
     const tasks = Array.from({ length: daysInMonth }, () => ({
-      completed: Array(defaultTasks.length).fill(false),
+      taskNames: [...defaultTaskTemplate],
+      completed: [false, false, false],
       notes: ""
     }));
 
@@ -97,8 +99,8 @@
       weeklyGoals[index][field] = value;
     }
 
-    function updateTaskName(taskIndex, value) {
-      defaultTasks[taskIndex] = value;
+    function updateTaskName(dayIndex, taskIndex, value) {
+      tasks[dayIndex].taskNames[taskIndex] = value;
       render();
     }
 
@@ -111,9 +113,11 @@
         return container;
       }
 
+      const { taskNames, completed, notes } = tasks[todayIndex];
+
       container.innerHTML = `<h2>📅 Today’s Plan (${formatDate(todayIndex)})</h2>`;
-      defaultTasks.forEach((task, j) => {
-        const isDone = tasks[todayIndex].completed[j];
+      taskNames.forEach((task, j) => {
+        const isDone = completed[j];
         const btn = document.createElement("button");
         btn.className = "btn" + (isDone ? " active" : "");
         btn.textContent = isDone ? `✅ Done: ${task}` : `⬜️ ${task}`;
@@ -122,7 +126,7 @@
         const note = document.createElement("textarea");
         note.className = "textarea";
         note.placeholder = `Details for: ${task}`;
-        note.value = tasks[todayIndex].notes;
+        note.value = notes;
         note.oninput = (e) => updateNotes(todayIndex, e.target.value);
 
         container.appendChild(btn);
@@ -154,8 +158,8 @@
       });
 
       const todayTasks = document.createElement("div");
-      todayTasks.innerHTML = "<h3>📅 Today’s Quick View</h3>";
-      defaultTasks.forEach(task => {
+      todayTasks.innerHTML = "<h3>📅 Today’s Tasks</h3>";
+      tasks[todayIndex]?.taskNames.forEach(task => {
         todayTasks.innerHTML += `<p>- ${task}</p>`;
       });
 
@@ -166,11 +170,10 @@
     function renderAdjustView() {
       const container = document.createElement("div");
 
-      // === WEEKLY GOALS ===
+      // Weekly goals
       const goalCard = document.createElement("div");
       goalCard.className = "card";
       goalCard.innerHTML = `<h3>🛠 Edit Weekly Goals</h3>`;
-
       weeklyGoals.forEach((goal, i) => {
         const titleInput = document.createElement("input");
         titleInput.className = "input";
@@ -187,32 +190,22 @@
         goalCard.appendChild(descInput);
         goalCard.appendChild(document.createElement("hr"));
       });
-
       container.appendChild(goalCard);
 
-      // === DAILY TASK NAMES ===
-      const taskCard = document.createElement("div");
-      taskCard.className = "card";
-      taskCard.innerHTML = `<h3>🛠 Edit Daily Tasks</h3>`;
-
-      defaultTasks.forEach((task, i) => {
-        const input = document.createElement("input");
-        input.className = "input";
-        input.value = task;
-        input.oninput = (e) => updateTaskName(i, e.target.value);
-        taskCard.appendChild(document.createTextNode(`Task #${i + 1}:`));
-        taskCard.appendChild(input);
-      });
-
-      container.appendChild(taskCard);
-
-      // === DAILY PLAN CARDS ===
+      // Daily tasks per day
       tasks.forEach((day, i) => {
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `<h3>${formatDate(i)}</h3>`;
 
-        defaultTasks.forEach((task, j) => {
+        day.taskNames.forEach((task, j) => {
+          const input = document.createElement("input");
+          input.className = "input";
+          input.value = task;
+          input.oninput = (e) => updateTaskName(i, j, e.target.value);
+          card.appendChild(document.createTextNode(`Task #${j + 1}:`));
+          card.appendChild(input);
+
           const isDone = day.completed[j];
           const btn = document.createElement("button");
           btn.className = "btn" + (isDone ? " active" : "");
@@ -223,7 +216,7 @@
 
         const note = document.createElement("textarea");
         note.className = "textarea";
-        note.placeholder = "Reflection / Adjustments / Notes";
+        note.placeholder = "Reflection / Notes";
         note.value = day.notes;
         note.oninput = (e) => updateNotes(i, e.target.value);
         card.appendChild(note);
