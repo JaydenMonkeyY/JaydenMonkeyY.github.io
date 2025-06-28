@@ -56,23 +56,19 @@
   <script>
     const startDate = new Date("2025-07-01");
     const daysInMonth = 30;
-    const defaultTasks = ["Study (30 mins)", "Workout (15–30 mins)", "Reflection"];
+
+    let defaultTasks = ["Study (30 mins)", "Workout (15–30 mins)", "Reflection"];
     let weeklyGoals = [
-      {
-        title: "Complete 1 full SAT test",
-        description: "Take a full timed SAT practice test using Bluebook or paper. Review all mistakes."
-      },
-      {
-        title: "Run 5km under 25 minutes",
-        description: "Attempt one 5K test run this week. Focus on pacing and breathing."
-      },
-      {
-        title: "Complete daily tasks 6 out of 7 days",
-        description: "Stay consistent with study, workout, and reflection for at least 6 days."
-      }
+      { title: "Complete 1 full SAT test", description: "Take a full timed SAT practice test using Bluebook or paper. Review all mistakes." },
+      { title: "Run 5km under 25 minutes", description: "Attempt one 5K test run this week. Focus on pacing and breathing." },
+      { title: "Complete daily tasks 6 out of 7 days", description: "Stay consistent with study, workout, and reflection for at least 6 days." }
     ];
 
-    const tasks = Array.from({ length: daysInMonth }, () => ({ completed: [false, false, false], notes: "" }));
+    const tasks = Array.from({ length: daysInMonth }, () => ({
+      completed: Array(defaultTasks.length).fill(false),
+      notes: ""
+    }));
+
     const today = new Date();
     const todayIndex = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
     let currentView = "daily";
@@ -99,6 +95,11 @@
 
     function updateGoal(index, field, value) {
       weeklyGoals[index][field] = value;
+    }
+
+    function updateTaskName(taskIndex, value) {
+      defaultTasks[taskIndex] = value;
+      render();
     }
 
     function renderTodayView() {
@@ -165,6 +166,7 @@
     function renderAdjustView() {
       const container = document.createElement("div");
 
+      // === WEEKLY GOALS ===
       const goalCard = document.createElement("div");
       goalCard.className = "card";
       goalCard.innerHTML = `<h3>🛠 Edit Weekly Goals</h3>`;
@@ -173,16 +175,12 @@
         const titleInput = document.createElement("input");
         titleInput.className = "input";
         titleInput.value = goal.title;
-        titleInput.oninput = (e) => {
-          updateGoal(i, "title", e.target.value);
-        };
+        titleInput.oninput = (e) => updateGoal(i, "title", e.target.value);
 
         const descInput = document.createElement("textarea");
         descInput.className = "textarea";
         descInput.value = goal.description;
-        descInput.oninput = (e) => {
-          updateGoal(i, "description", e.target.value);
-        };
+        descInput.oninput = (e) => updateGoal(i, "description", e.target.value);
 
         goalCard.appendChild(document.createTextNode(`Goal #${i + 1}:`));
         goalCard.appendChild(titleInput);
@@ -192,7 +190,23 @@
 
       container.appendChild(goalCard);
 
-      // Daily plan adjustment
+      // === DAILY TASK NAMES ===
+      const taskCard = document.createElement("div");
+      taskCard.className = "card";
+      taskCard.innerHTML = `<h3>🛠 Edit Daily Tasks</h3>`;
+
+      defaultTasks.forEach((task, i) => {
+        const input = document.createElement("input");
+        input.className = "input";
+        input.value = task;
+        input.oninput = (e) => updateTaskName(i, e.target.value);
+        taskCard.appendChild(document.createTextNode(`Task #${i + 1}:`));
+        taskCard.appendChild(input);
+      });
+
+      container.appendChild(taskCard);
+
+      // === DAILY PLAN CARDS ===
       tasks.forEach((day, i) => {
         const card = document.createElement("div");
         card.className = "card";
