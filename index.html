@@ -40,6 +40,11 @@
     }
     .tabs button {
       margin-right: 8px;
+      .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
     }
   </style>
 </head>
@@ -167,65 +172,97 @@
       return container;
     }
 
-    function renderAdjustView() {
-      const container = document.createElement("div");
+   function renderAdjustView() {
+  const container = document.createElement("div");
 
-      // Weekly goals
-      const goalCard = document.createElement("div");
-      goalCard.className = "card";
-      goalCard.innerHTML = `<h3>🛠 Edit Weekly Goals</h3>`;
-      weeklyGoals.forEach((goal, i) => {
-        const titleInput = document.createElement("input");
-        titleInput.className = "input";
-        titleInput.value = goal.title;
-        titleInput.oninput = (e) => updateGoal(i, "title", e.target.value);
+  // WEEKLY GOALS SECTION
+  const goalCard = document.createElement("div");
+  goalCard.className = "card";
+  goalCard.innerHTML = `<h3>🛠 Edit Weekly Goals</h3>`;
+  weeklyGoals.forEach((goal, i) => {
+    const titleInput = document.createElement("input");
+    titleInput.className = "input";
+    titleInput.value = goal.title;
+    titleInput.oninput = (e) => updateGoal(i, "title", e.target.value);
 
-        const descInput = document.createElement("textarea");
-        descInput.className = "textarea";
-        descInput.value = goal.description;
-        descInput.oninput = (e) => updateGoal(i, "description", e.target.value);
+    const descInput = document.createElement("textarea");
+    descInput.className = "textarea";
+    descInput.value = goal.description;
+    descInput.oninput = (e) => updateGoal(i, "description", e.target.value);
 
-        goalCard.appendChild(document.createTextNode(`Goal #${i + 1}:`));
-        goalCard.appendChild(titleInput);
-        goalCard.appendChild(descInput);
-        goalCard.appendChild(document.createElement("hr"));
-      });
-      container.appendChild(goalCard);
+    goalCard.appendChild(document.createTextNode(`Goal #${i + 1}:`));
+    goalCard.appendChild(titleInput);
+    goalCard.appendChild(descInput);
+    goalCard.appendChild(document.createElement("hr"));
+  });
+  container.appendChild(goalCard);
 
-      // Daily tasks per day
-      tasks.forEach((day, i) => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<h3>${formatDate(i)}</h3>`;
+  // CALENDAR SECTION
+  const calendarCard = document.createElement("div");
+  calendarCard.className = "card";
+  calendarCard.innerHTML = `<h3>📅 Tap a Day to Edit</h3>`;
 
-        day.taskNames.forEach((task, j) => {
-          const input = document.createElement("input");
-          input.className = "input";
-          input.value = task;
-          input.oninput = (e) => updateTaskName(i, j, e.target.value);
-          card.appendChild(document.createTextNode(`Task #${j + 1}:`));
-          card.appendChild(input);
+  const grid = document.createElement("div");
+  grid.style.display = "grid";
+  grid.style.gridTemplateColumns = "repeat(7, 1fr)";
+  grid.style.gap = "8px";
 
-          const isDone = day.completed[j];
-          const btn = document.createElement("button");
-          btn.className = "btn" + (isDone ? " active" : "");
-          btn.textContent = `${isDone ? "✅" : "⬜️"} ${task}`;
-          btn.onclick = () => toggleTask(i, j);
-          card.appendChild(btn);
-        });
+  for (let i = 0; i < daysInMonth; i++) {
+    const dateBtn = document.createElement("button");
+    dateBtn.className = "btn";
+    dateBtn.textContent = formatDate(i).split(" ")[1]; // just day number
+    dateBtn.onclick = () => showDayEditor(i);
+    grid.appendChild(dateBtn);
+  }
 
-        const note = document.createElement("textarea");
-        note.className = "textarea";
-        note.placeholder = "Reflection / Notes";
-        note.value = day.notes;
-        note.oninput = (e) => updateNotes(i, e.target.value);
-        card.appendChild(note);
+  calendarCard.appendChild(grid);
+  container.appendChild(calendarCard);
 
-        container.appendChild(card);
-      });
+  // EDITOR PLACEHOLDER
+  const editorDiv = document.createElement("div");
+  editorDiv.id = "day-editor";
+  container.appendChild(editorDiv);
 
-      return container;
-    }
+  return container;
+}
+function showDayEditor(dayIndex) {
+  const editor = document.getElementById("day-editor");
+  editor.innerHTML = "";
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<h3>📝 Edit ${formatDate(dayIndex)}</h3>`;
+
+  tasks[dayIndex].taskNames.forEach((task, j) => {
+    const input = document.createElement("input");
+    input.className = "input";
+    input.value = task;
+    input.oninput = (e) => updateTaskName(dayIndex, j, e.target.value);
+    card.appendChild(document.createTextNode(`Task #${j + 1}:`));
+    card.appendChild(input);
+
+    const isDone = tasks[dayIndex].completed[j];
+    const btn = document.createElement("button");
+    btn.className = "btn" + (isDone ? " active" : "");
+    btn.textContent = `${isDone ? "✅" : "⬜️"} ${task}`;
+    btn.onclick = () => toggleTask(dayIndex, j);
+    card.appendChild(btn);
+  });
+
+  const note = document.createElement("textarea");
+  note.className = "textarea";
+  note.placeholder = "Reflection / Notes";
+  note.value = tasks[dayIndex].notes;
+  note.oninput = (e) => updateNotes(dayIndex, e.target.value);
+  card.appendChild(note);
+
+  editor.appendChild(card);
+
+  // Scroll into view
+  setTimeout(() => {
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 100);
+}
 
   function render() {
   const app = document.getElementById("app");
