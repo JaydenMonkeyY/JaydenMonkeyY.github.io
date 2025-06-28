@@ -227,18 +227,25 @@
       return container;
     }
 
-    function render() {
-      const app = document.getElementById("app");
-      app.innerHTML = "";
-      if (currentView === "daily") {
-        app.appendChild(renderTodayView());
-      } else if (currentView === "weekly") {
-        app.appendChild(renderWeeklyView());
-      } else {
-        app.appendChild(renderAdjustView());
-      }
-    }
+  function render() {
+  const app = document.getElementById("app");
 
+  // Save scroll position
+  const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+
+  app.innerHTML = "";
+
+  if (currentView === "daily") {
+    app.appendChild(renderTodayView());
+  } else if (currentView === "weekly") {
+    app.appendChild(renderWeeklyView());
+  } else {
+    app.appendChild(renderAdjustView());
+  }
+
+  // Restore scroll position
+  window.scrollTo(0, scrollTop);
+}
     render();
   </script>
 </body>
